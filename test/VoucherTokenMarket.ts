@@ -1,7 +1,7 @@
 const { expect } = require('chai');
 const { ethers } = require('hardhat');
 
-describe('VoucherMarket', function () {
+describe('VoucherTokenMarket', function () {
 	let usdtContract;
 	let operatorManager;
 	let whitelistManager;
@@ -40,13 +40,13 @@ describe('VoucherMarket', function () {
 		feeManager = await FeeManager.deploy(operatorManager.address, owner.address, 10);
 		await feeManager.deployed();
 
-		// Deploy the VoucherMarket contract
-		const VoucherMarket = await ethers.getContractFactory('VoucherMarket');
-		voucherMarket = await VoucherMarket.deploy(usdtContract.address, operatorManager.address, whitelistManager.address, feeManager.address);
+		// Deploy the VoucherTokenMarket contract
+		const VoucherTokenMarket = await ethers.getContractFactory('VoucherTokenMarket');
+		voucherMarket = await VoucherTokenMarket.deploy(usdtContract.address, operatorManager.address, whitelistManager.address, feeManager.address);
 		await voucherMarket.deployed();
 
 		// Deploy the Voucher Contract (ERC1155)
-		const VoucherContract = await ethers.getContractFactory('Voucher1155DerivativeToken');
+		const VoucherContract = await ethers.getContractFactory('VoucherToken');
 		voucherContract = await VoucherContract.deploy('CarbonToken', 'CTK', feeManager.address);
 		await voucherContract.deployed();
 
@@ -54,13 +54,13 @@ describe('VoucherMarket', function () {
 		await operatorManager.connect(owner).addOperator(operator.address);
 	});
 
-	describe('VoucherMarket Contract', function () {
+	describe('VoucherTokenMarket Contract', function () {
 		// Test case for verifying a voucher contract
 		it('should verify a voucher contract', async function () {
 			// Verify the voucher contract with the voucher market
 			await voucherMarket.connect(operator).verifyVoucherContract(voucherContract.address);
 
-			// Check if the voucher contract is correctly verified in the VoucherMarket
+			// Check if the voucher contract is correctly verified in the VoucherTokenMarket
 			const isVerified = await voucherMarket.voucherContractMap(voucherContract.address);
 			expect(isVerified).to.equal(true);
 		});

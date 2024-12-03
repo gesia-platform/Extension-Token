@@ -13,28 +13,21 @@ import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 
-/**
- * @title DerivativeTokenMarket
- * @dev A marketplace for trading derivative tokens using ERC1155 tokens.
- */
-contract DerivativeTokenMarket is ERC1155Holder {
+contract ExtensionTokenMarket is ERC1155Holder {
     using Counters for Counters.Counter;
     using SafeMath for uint256;
     using SafeERC20 for ERC20;
 
-    /**
-     * @dev Struct representing a market item for derivative tokens.
-     */
-    struct DerivativeTokenMarketItem {
-        address contractAddress; // Derivative token contract address
-        uint256 tokenId; // Token ID of the derivative token
+    struct ExtensionTokenMarketItem {
+        address contractAddress; // Extension token contract address
+        uint256 tokenId; // Token ID of the extension token
         uint256 amount; // Amount of the token listed for sale
         uint256 price;  // Price per token (in USDT or BNB)
         address seller; // Wallet address of the seller
     }
 
-    mapping(uint256 => DerivativeTokenMarketItem) public _marketItemMap; // Mapping of market ID to market items
-    mapping(address => bool) public derivativeTokenContractMap; // Verified derivative token contracts
+    mapping(uint256 => ExtensionTokenMarketItem) public _marketItemMap; // Mapping of market ID to market items
+    mapping(address => bool) public extensionTokenContractMap; // Verified extension token contracts
     Counters.Counter private _marketItemIds; // Counter for market item IDs
     address public usdtContractAddress; // Address of the USDT contract
     address public operatorManager; // Address of the operator manager
@@ -44,10 +37,10 @@ contract DerivativeTokenMarket is ERC1155Holder {
 
     // Events
     event MinPriceChange(uint256 price, bool isBnb);
-    event VerificationDerivativeTokenContract(address indexed derivativeTokenContract, bool isVerified);
-    event TokenPlaced(address indexed derivativeTokenContract, uint256 indexed tokenId, uint256 indexed marketId, uint256 amount, address seller, uint256 price);
-    event TokenUnPlaced(address indexed derivativeTokenContract, uint256 indexed tokenId, uint256 indexed marketId, uint256 deductedAmount, uint256 remainAmount, address seller, uint256 price);
-    event TokenSold(address indexed derivativeTokenContract, uint256 indexed tokenId, uint256 indexed marketId, uint256 amount, address buyer, address seller, uint256 price, uint256 totalPrice, uint256 feeAmount, uint256 remainAmount);
+    event VerificationExtensionTokenContract(address indexed extensionTokenContract, bool isVerified);
+    event TokenPlaced(address indexed extensionTokenContract, uint256 indexed tokenId, uint256 indexed marketId, uint256 amount, address seller, uint256 price);
+    event TokenUnPlaced(address indexed extensionTokenContract, uint256 indexed tokenId, uint256 indexed marketId, uint256 deductedAmount, uint256 remainAmount, address seller, uint256 price);
+    event TokenSold(address indexed extensionTokenContract, uint256 indexed tokenId, uint256 indexed marketId, uint256 amount, address buyer, address seller, uint256 price, uint256 totalPrice, uint256 feeAmount, uint256 remainAmount);
 
     /**
      * @dev Constructor to initialize the contract with required addresses.
@@ -90,51 +83,51 @@ contract DerivativeTokenMarket is ERC1155Holder {
     }
 
     /**
-     * @dev Verify a derivative token contract.
-     * @param _derivativeTokenContract Address of the derivative token contract.
+     * @dev Verify a extension token contract.
+     * @param _extensionTokenContract Address of the extension token contract.
      */
-    function verifyDerivativeTokenContract(address _derivativeTokenContract) external operatorsOnly {
-        derivativeTokenContractMap[_derivativeTokenContract] = true;
-        emit VerificationDerivativeTokenContract(_derivativeTokenContract, true);
+    function verifyExtensionTokenContract(address _extensionTokenContract) external operatorsOnly {
+        extensionTokenContractMap[_extensionTokenContract] = true;
+        emit VerificationExtensionTokenContract(_extensionTokenContract, true);
     }
 
     /**
-     * @dev Unverify a derivative token contract.
-     * @param _derivativeTokenContract Address of the derivative token contract.
+     * @dev Unverify a extension token contract.
+     * @param _extensionTokenContract Address of the extension token contract.
      */
-    function unVerifyDerivativeTokenContract(address _derivativeTokenContract) external operatorsOnly {
-        derivativeTokenContractMap[_derivativeTokenContract] = false;
-        emit VerificationDerivativeTokenContract(_derivativeTokenContract, false);
+    function unVerifyExtensionTokenContract(address _extensionTokenContract) external operatorsOnly {
+        extensionTokenContractMap[_extensionTokenContract] = false;
+        emit VerificationExtensionTokenContract(_extensionTokenContract, false);
     }
 
     /**
-     * @dev Place a derivative token on the marketplace for sale.
+     * @dev Place a extension token on the marketplace for sale.
      * @param _amount Number of tokens to sell.
-     * @param _derivativeTokenContract Address of the token contract.
+     * @param _extensionTokenContract Address of the token contract.
      * @param _tokenId Token ID to list.
-     * @param _perDerivativeTokenPrice Price per token.
+     * @param _perExtensionTokenPrice Price per token.
      */
-    function place(uint256 _amount, address _derivativeTokenContract, uint256 _tokenId, uint256 _perDerivativeTokenPrice) external {
-        require(derivativeTokenContractMap[_derivativeTokenContract], "Not Valid Derivative Token Contract");
+    function place(uint256 _amount, address _extensionTokenContract, uint256 _tokenId, uint256 _perExtensionTokenPrice) external {
+        require(extensionTokenContractMap[_extensionTokenContract], "Not Valid Extension Token Contract");
         require(_amount > 0, "Must be higher than zero");
-        require(_perDerivativeTokenPrice >= IPrice(_derivativeTokenContract).getCarbonPrice(_tokenId), "min carbon price issue");
+        require(_perExtensionTokenPrice >= IPrice(_extensionTokenContract).getCarbonPrice(_tokenId), "min carbon price issue");
         if (isWhitelistEnabled) {
-            require(IWhitelist(whitelistManager).isWhitelist(_derivativeTokenContract, _tokenId, msg.sender), "not in whitelist");
+            require(IWhitelist(whitelistManager).isWhitelist(_extensionTokenContract, _tokenId, msg.sender), "not in whitelist");
         }
 
         _marketItemIds.increment();
         uint256 marketId = _marketItemIds.current();
 
-        _marketItemMap[marketId] = DerivativeTokenMarketItem(
-            _derivativeTokenContract,
+        _marketItemMap[marketId] = ExtensionTokenMarketItem(
+            _extensionTokenContract,
             _tokenId,
             _amount,
-            _perDerivativeTokenPrice,
+            _perExtensionTokenPrice,
             msg.sender
         );
 
-        IERC1155(_derivativeTokenContract).safeTransferFrom(msg.sender, address(this), _tokenId, _amount, "");
-        emit TokenPlaced(_derivativeTokenContract, _tokenId, marketId, _amount, msg.sender, _perDerivativeTokenPrice);
+        IERC1155(_extensionTokenContract).safeTransferFrom(msg.sender, address(this), _tokenId, _amount, "");
+        emit TokenPlaced(_extensionTokenContract, _tokenId, marketId, _amount, msg.sender, _perExtensionTokenPrice);
     }
 
     /**
@@ -145,7 +138,7 @@ contract DerivativeTokenMarket is ERC1155Holder {
     function unPlace(uint256 _marketId, uint256 _amount) external {
         require(_amount > 0, "Must be higher than zero");
 
-        DerivativeTokenMarketItem storage marketItem = _marketItemMap[_marketId];
+        ExtensionTokenMarketItem storage marketItem = _marketItemMap[_marketId];
         require(marketItem.seller == msg.sender || IOperator(operatorManager).isOperator(msg.sender), "Not ownerOf or Operators");
         require(marketItem.amount >= _amount, "Not Enough amount");
 
@@ -162,7 +155,7 @@ contract DerivativeTokenMarket is ERC1155Holder {
     function purchaseInUSDT(uint256 _marketId, uint256 _amount) external {
         require(_amount > 0, "Must be higher than zero");
 
-        DerivativeTokenMarketItem storage marketItem = _marketItemMap[_marketId];
+        ExtensionTokenMarketItem storage marketItem = _marketItemMap[_marketId];
         require(marketItem.amount >= _amount, "Not Enough amount");
         if (isWhitelistEnabled) {
             require(IWhitelist(whitelistManager).isWhitelist(marketItem.contractAddress, marketItem.tokenId, msg.sender), "not in whitelist");

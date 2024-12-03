@@ -1,25 +1,19 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
-// Import necessary OpenZeppelin contracts and other internal contracts
-import "@openzeppelin/contracts/access/Ownable.sol";  // For access control (Ownable pattern)
-import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";  // For ERC1155 token implementation
-import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";  // Interface for ERC1155 receiver
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";  // SafeMath for arithmetic operations
-import "@openzeppelin/contracts/utils/Strings.sol";  // For string manipulation
-import "@openzeppelin/contracts/utils/Counters.sol";  // For safe counter incrementation
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";  // Interface for ERC20 token
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";  // To prevent reentrancy attacks
-import "../operator/IOperator.sol";  // Interface for operator management
-import "../fee/IFeeManager.sol";  // Interface for fee management
-import "../price/IPrice.sol";  // Interface for price fetching
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
+import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
+import "@openzeppelin/contracts/utils/Counters.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "../operator/IOperator.sol";
+import "../fee/IFeeManager.sol";
+import "../price/IPrice.sol";
 
-/**
- * @title Carbon1155DerivativeToken
- * @notice This contract manages ERC1155 tokens for carbon offset and derivative token management.
- * @dev The contract allows minting, transferring with signatures, and managing carbon tokens with fee and operator controls.
- */
-contract Carbon1155DerivativeToken is ERC1155, ReentrancyGuard, IPrice {
+contract ExtensionToken is ERC1155, ReentrancyGuard, IPrice {
     using Strings for string;
     using SafeMath for uint256;
     using Counters for Counters.Counter;
@@ -33,10 +27,8 @@ contract Carbon1155DerivativeToken is ERC1155, ReentrancyGuard, IPrice {
     string public name;  // Token name
     string public symbol;  // Token symbol
 
-    // Token weight for each tokenId
-    mapping(uint256 => uint256) private _tokenWeight;
+    mapping(uint256 => uint256) private _tokenWeight; // Token weight for each tokenId
 
-    // External contract addresses
     address public voucherAddress;  // Address for the voucher contract
     uint256 public voucherTokenId;  // Token ID for the voucher
     address public operatorManager;  // Operator manager address
@@ -44,8 +36,7 @@ contract Carbon1155DerivativeToken is ERC1155, ReentrancyGuard, IPrice {
     uint256 public feeAmount = 100;  // Fee amount (1%)
     uint256 public minUSDTPrice = 10000;  // Minimum USDT price threshold (0.01 USDT)
 
-    // Token ID counter, incrementing by 1
-    Counters.Counter private _tokenIdTracker;
+    Counters.Counter private _tokenIdTracker; // Token ID counter, incrementing by 1
     uint256 private carbonPrice;  // Carbon price value
     mapping(uint256 => uint256) private carbonMapPrice;  // Mapping of token ID to carbon price
 

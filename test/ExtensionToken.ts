@@ -1,8 +1,8 @@
 const { expect } = require('chai');
 const { ethers } = require('hardhat');
 
-describe('Carbon1155DerivativeToken', function () {
-	let voucherContract, carbonTokenContract;
+describe('ExtensionToken', function () {
+	let voucherContract, extensionTokenContract;
 	let owner, operator, user;
 	let voucherTokenId = 1;
 	let feeManager, operatorManager;
@@ -24,15 +24,15 @@ describe('Carbon1155DerivativeToken', function () {
 		feeManager = await FeeManagerMock.deploy(operatorManager.address, owner.address, 10);
 		await feeManager.deployed();
 
-		// Deploy Voucher1155DerivativeToken
-		const Voucher1155DerivativeToken = await ethers.getContractFactory('Voucher1155DerivativeToken');
-		voucherContract = await Voucher1155DerivativeToken.deploy('VoucherToken', 'VT', feeManager.address);
+		// Deploy VoucherToken
+		const VoucherToken = await ethers.getContractFactory('VoucherToken');
+		voucherContract = await VoucherToken.deploy('VoucherToken', 'VT', feeManager.address);
 		await voucherContract.deployed();
 
-		// Deploy the Carbon1155DerivativeToken contract
-		const Carbon1155DerivativeToken = await ethers.getContractFactory('Carbon1155DerivativeToken');
-		carbonTokenContract = await Carbon1155DerivativeToken.deploy('CarbonToken', 'CTK', operatorManager.address, feeManager.address, voucherContract.address, voucherTokenId);
-		await carbonTokenContract.deployed();
+		// Deploy the ExtensionToken contract
+		const ExtensionToken = await ethers.getContractFactory('ExtensionToken');
+		extensionTokenContract = await ExtensionToken.deploy('CarbonToken', 'CTK', operatorManager.address, feeManager.address, voucherContract.address, voucherTokenId);
+		await extensionTokenContract.deployed();
 
 		// Mint some voucher tokens to the user
 		const tokenId = 1;
@@ -54,18 +54,18 @@ describe('Carbon1155DerivativeToken', function () {
 			await operatorManager.connect(owner).addOperator(operator.address);
 
 			// Ensure the user has approved the carbon contract to transfer voucher tokens
-			await voucherContract.connect(user).setApprovalForAll(carbonTokenContract.address, true);
+			await voucherContract.connect(user).setApprovalForAll(extensionTokenContract.address, true);
 
-			const messageHash = ethers.utils.solidityKeccak256(['address', 'uint256', 'uint256', 'address'], [user.address, carbonAmount, nonce, carbonTokenContract.address]);
+			const messageHash = ethers.utils.solidityKeccak256(['address', 'uint256', 'uint256', 'address'], [user.address, carbonAmount, nonce, extensionTokenContract.address]);
 
 			// Sign the message
 			const signature = await user.signMessage(ethers.utils.arrayify(messageHash));
 
 			// Mint the token
-			await carbonTokenContract.connect(operator).mint(user.address, carbonAmount, nonce, metadata, signature, carbonPrice);
+			await extensionTokenContract.connect(operator).mint(user.address, carbonAmount, nonce, metadata, signature, carbonPrice);
 
 			// Check the balance of the minted tokens
-			const balance = await carbonTokenContract.balanceOf(user.address, 1);
+			const balance = await extensionTokenContract.balanceOf(user.address, 1);
 			expect(balance).to.equal(carbonAmount * feeAmount);
 		});
 
@@ -74,11 +74,11 @@ describe('Carbon1155DerivativeToken', function () {
 			const nonce = 1;
 			const metadata = 'http://metadata.com';
 			const carbonPrice = 9999; // Below minimum price
-			const messageHash = ethers.utils.solidityKeccak256(['address', 'uint256', 'uint256', 'address'], [user.address, carbonAmount, nonce, carbonTokenContract.address]);
+			const messageHash = ethers.utils.solidityKeccak256(['address', 'uint256', 'uint256', 'address'], [user.address, carbonAmount, nonce, extensionTokenContract.address]);
 
 			const signature = await user.signMessage(ethers.utils.arrayify(messageHash));
 
-			await expect(carbonTokenContract.connect(operator).mint(user.address, carbonAmount, nonce, metadata, signature, carbonPrice)).to.be.revertedWith('price must be higher than min');
+			await expect(extensionTokenContract.connect(operator).mint(user.address, carbonAmount, nonce, metadata, signature, carbonPrice)).to.be.revertedWith('price must be higher than min');
 		});
 	});
 
@@ -93,19 +93,19 @@ describe('Carbon1155DerivativeToken', function () {
 			await operatorManager.connect(owner).addOperator(operator.address);
 
 			// Ensure the user has approved the carbon contract to transfer voucher tokens
-			await voucherContract.connect(user).setApprovalForAll(carbonTokenContract.address, true);
+			await voucherContract.connect(user).setApprovalForAll(extensionTokenContract.address, true);
 
 			// Prepare message hash for minting
-			const mintMessageHash = ethers.utils.solidityKeccak256(['address', 'uint256', 'uint256', 'address'], [user.address, mintAmount, mintNonce, carbonTokenContract.address]);
+			const mintMessageHash = ethers.utils.solidityKeccak256(['address', 'uint256', 'uint256', 'address'], [user.address, mintAmount, mintNonce, extensionTokenContract.address]);
 
 			// Sign the message for minting
 			const mintSignature = await user.signMessage(ethers.utils.arrayify(mintMessageHash));
 
 			// Mint the token
-			await carbonTokenContract.connect(operator).mint(user.address, mintAmount, mintNonce, metadata, mintSignature, carbonPrice);
+			await extensionTokenContract.connect(operator).mint(user.address, mintAmount, mintNonce, metadata, mintSignature, carbonPrice);
 
 			// Check the balance of the minted tokens
-			const userBalanceAfterMint = await carbonTokenContract.balanceOf(user.address, 1);
+			const userBalanceAfterMint = await extensionTokenContract.balanceOf(user.address, 1);
 			expect(userBalanceAfterMint).to.equal(mintAmount * feeAmount);
 
 			// Transfer details
@@ -113,16 +113,16 @@ describe('Carbon1155DerivativeToken', function () {
 			const transferNonce = 1; // Nonce for transfer
 
 			// Ensure the user has approved the operator to transfer tokens on their behalf
-			await voucherContract.connect(user).setApprovalForAll(carbonTokenContract.address, true);
+			await voucherContract.connect(user).setApprovalForAll(extensionTokenContract.address, true);
 
 			// Prepare message hash for transfer
-			const transferMessageHash = ethers.utils.solidityKeccak256(['address', 'address', 'uint256', 'uint256', 'uint256', 'address'], [user.address, operator.address, 1, transferAmount, transferNonce, carbonTokenContract.address]);
+			const transferMessageHash = ethers.utils.solidityKeccak256(['address', 'address', 'uint256', 'uint256', 'uint256', 'address'], [user.address, operator.address, 1, transferAmount, transferNonce, extensionTokenContract.address]);
 
 			// Sign the message for transfer
 			const transferSignature = await user.signMessage(ethers.utils.arrayify(transferMessageHash));
 
 			// Operator should call the transfer function on behalf of the user
-			await carbonTokenContract.connect(operator).transferWithSignature(
+			await extensionTokenContract.connect(operator).transferWithSignature(
 				user.address, // 'from' address
 				operator.address, // 'to' address
 				1, // tokenId
@@ -132,7 +132,7 @@ describe('Carbon1155DerivativeToken', function () {
 			);
 
 			// Check the balance of the operator to verify the transfer
-			const operatorBalanceAfterTransfer = await carbonTokenContract.balanceOf(operator.address, 1);
+			const operatorBalanceAfterTransfer = await extensionTokenContract.balanceOf(operator.address, 1);
 			expect(operatorBalanceAfterTransfer).to.equal(transferAmount);
 		});
 
@@ -141,7 +141,7 @@ describe('Carbon1155DerivativeToken', function () {
 			const nonce = 1;
 			const invalidSignature = '0x';
 
-			await expect(carbonTokenContract.connect(operator).transferWithSignature(user.address, operator.address, 1, carbonAmount, nonce, invalidSignature)).to.be.revertedWith('invalid signature length');
+			await expect(extensionTokenContract.connect(operator).transferWithSignature(user.address, operator.address, 1, carbonAmount, nonce, invalidSignature)).to.be.revertedWith('invalid signature length');
 		});
 	});
 });

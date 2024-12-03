@@ -1,7 +1,7 @@
 const { expect } = require('chai');
 const { ethers } = require('hardhat');
 
-describe('Voucher1155DerivativeToken', function () {
+describe('VoucherToken', function () {
 	let voucherToken;
 	let feeManager;
 	let operatorManager;
@@ -23,14 +23,14 @@ describe('Voucher1155DerivativeToken', function () {
 		feeManager = await FeeManagerMock.deploy(operatorManager.address, owner.address, 10);
 		await feeManager.deployed();
 
-		// Deploy Voucher1155DerivativeToken
-		const Voucher1155DerivativeToken = await ethers.getContractFactory('Voucher1155DerivativeToken');
-		voucherToken = await Voucher1155DerivativeToken.deploy('CarbonToken', 'CTK', feeManager.address);
+		// Deploy VoucherToken
+		const VoucherToken = await ethers.getContractFactory('VoucherToken');
+		voucherToken = await VoucherToken.deploy('CarbonToken', 'CTK', feeManager.address);
 		await voucherToken.deployed();
 	});
 
 	describe('Deployment', function () {
-		it('Should deploy Voucher1155DerivativeToken contract correctly', async function () {
+		it('Should deploy VoucherToken contract correctly', async function () {
 			expect(await voucherToken.name()).to.equal('CarbonToken');
 			expect(await voucherToken.symbol()).to.equal('CTK');
 			expect(await voucherToken.feeManager()).to.equal(feeManager.address);

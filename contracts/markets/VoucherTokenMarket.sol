@@ -13,7 +13,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 
-contract VoucherMarket is ERC1155Holder {
+contract VoucherTokenMarket is ERC1155Holder {
     using Counters for Counters.Counter;
     using SafeMath for uint256;
     using SafeERC20 for ERC20;

@@ -14,7 +14,7 @@ import "../operator/IMintOperator.sol";
 import "../operator/IOperator.sol";
 import "../fee/IFeeManager.sol";
 
-contract Voucher1155DerivativeToken is ERC1155, IMintOperator, ReentrancyGuard, IPrice, Ownable {
+contract VoucherToken is ERC1155, IMintOperator, ReentrancyGuard, IPrice, Ownable {
     using Strings for string;
     using SafeMath for uint256;
     using Counters for Counters.Counter;
@@ -51,7 +51,7 @@ contract Voucher1155DerivativeToken is ERC1155, IMintOperator, ReentrancyGuard, 
     mapping(uint256 => uint256) private carbonMapPrice;
 
     /**
-     * @notice Constructor for the Voucher1155DerivativeToken contract.
+     * @notice Constructor for the VoucherToken contract.
      * @param _name The name of the token.
      * @param _symbol The symbol of the token.
      * @param _feeManager The address of the Fee Manager contract.
